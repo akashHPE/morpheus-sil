@@ -87,9 +87,8 @@ def data_preprocessing(training_data):
 
 
 def train_model(model_dir, train_dataloader, idx2label, core_context):
-    proxies = {'http': 'http://web-proxy.houston.hpecorp.net:8080', 'https': 'http://web-proxy.houston.hpecorp.net:8080'}
     num_labels = len(idx2label)
-    model = AutoModelForSequenceClassification.from_pretrained(model_dir, num_labels=num_labels, proxies=proxies)
+    model = AutoModelForSequenceClassification.from_pretrained(model_dir, num_labels=num_labels)
     model.train()
     model.cuda()
 

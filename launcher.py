@@ -96,10 +96,12 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     git_config = ''
+    shutil.rmtree('model', ignore_errors=True)
     if args.proxy:
         git_config = f'http.proxy={args.proxy}'
-    shutil.rmtree('model', ignore_errors=True)
-    repo = Repo.clone_from(args.repo, 'model', config=git_config, allow_unsafe_options=True)
+        repo = Repo.clone_from(args.repo, 'model', config=git_config, allow_unsafe_options=True)
+    else:
+        repo = Repo.clone_from(args.repo, 'model', allow_unsafe_options=True)
 
     client.login(master=args.master, user='determined')
 
