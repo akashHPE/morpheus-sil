@@ -56,7 +56,11 @@ def register_or_return_version(model: client.Model, checkpoint: Checkpoint) -> M
     """
     mv = model.get_version()  # gets latest version of model
 
-    existing_best = mv.checkpoint.training.validation_metrics['avgMetrics']['val_f1_accuracy']
+    try:
+        existing_best = mv.checkpoint.training.validation_metrics['avgMetrics']['val_f1_accuracy']
+    except AttributeError as e:
+        existing_best = 0
+
     new_best = checkpoint.training.validation_metrics['avgMetrics']['val_f1_accuracy']
 
     if new_best > existing_best:
