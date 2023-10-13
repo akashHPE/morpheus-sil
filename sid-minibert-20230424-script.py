@@ -72,6 +72,15 @@ def data_preprocessing(training_data):
                                        truncation=True,
                                        add_special_tokens=True)
 
+    tokenizer_output_sample = cased_tokenizer(df["data"][0:3],
+                                              max_length=256,
+                                              max_num_rows=3,
+                                              truncation=True,
+                                              add_special_tokens=True,
+                                              return_tensors="pt")
+
+    sample_model_input = (tokenizer_output["input_ids"], tokenizer_output["attention_mask"])
+
     # create dataset
     dataset = TensorDataset(tokenizer_output["input_ids"], tokenizer_output["attention_mask"], labels)
 
@@ -83,10 +92,10 @@ def data_preprocessing(training_data):
     # create dataloaders
     train_dataloader = DataLoader(dataset=training_dataset, shuffle=True, batch_size=32)
     val_dataloader = DataLoader(dataset=validation_dataset, shuffle=False, batch_size=64)
-    return train_dataloader, val_dataloader, idx2label
+    return train_dataloader, val_dataloader, idx2label, sample_model_input
 
 
-def train_model(model_dir, train_dataloader, idx2label, core_context):
+def train_model(model_dir, train_dataloader, idx2label, core_context, sample_model_input):
     num_labels = len(idx2label)
     model = AutoModelForSequenceClassification.from_pretrained(model_dir, num_labels=num_labels)
     model.train()
@@ -173,6 +182,7 @@ def train_model(model_dir, train_dataloader, idx2label, core_context):
                 torch.save(model.state_dict(), path / "checkpoint.pt")
                 with path.joinpath("state").open("w") as f:
                     f.write(f"{idx+1},{info.trial.trial_id}")
+                export_onnx(model, path, sample_model_input)
 
             if core_context.preempt.should_preempt():
                 return
@@ -231,12 +241,26 @@ def model_eval(model, val_dataloader, idx2label, core_context, steps_completed):
         print(cf)
 
 
+def export_onnx(model, path, sample_model_input):
+    # https://github.com/nv-morpheus/Morpheus/blob/branch-23.11/models/training-tuning-scripts/sid-models/sid-minibert-20230424.ipynb
+    torch.onnx.export(model,
+                      sample_model_input,
+                      path / "model.onnx",  # where to save the model
+                      export_params=True,  # store the trained parameter weights inside the model file
+                      opset_version=10,  # the ONNX version to export the model to
+                      do_constant_folding=True,  # whether to execute constant folding for optimization
+                      input_names=['input_ids', 'attention_mask'],  # the model's input names
+                      output_names=['output'],  # the model's output names
+                      dynamic_axes={'input_ids': {0: 'batch_size'},  # variable length axes
+                                    'attention_mask': {0: 'batch_size'},
+                                    'output': {0: 'batch_size'}})
+
+
 def main(core_context):
     print("Data Preprocessing...")
-    train_dataloader, val_dataloader, idx2label = data_preprocessing(args.training_data)
+    train_dataloader, val_dataloader, idx2label, sample_model_input = data_preprocessing(args.training_data)
     print("Model Training...")
-    model, steps_completed = train_model(args.model_dir, train_dataloader, idx2label, core_context)
-    save_model(model, args.output_file)
+    model, steps_completed = train_model(args.model_dir, train_dataloader, idx2label, core_context, sample_model_input)
     print("Model Evaluation...")
     model_eval(model, val_dataloader, idx2label, core_context, steps_completed)
 
