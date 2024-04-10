@@ -179,10 +179,11 @@ def train_model(model_dir, train_dataloader, idx2label, core_context, sample_mod
         if (idx+1) % int(args.checkpoint_every_n_epochs) == 0:
             print("checkpointing now")
             with core_context.checkpoint.store_path(checkpoint_metadata_dict) as (path, storage_id):
-                torch.save(model.state_dict(), path / "checkpoint.pt")
+                export_onnx(model, path, sample_model_input)
+                #torch.save(model.state_dict(), path / "checkpoint.pt")
                 with path.joinpath("state").open("w") as f:
                     f.write(f"{idx+1},{info.trial.trial_id}")
-                export_onnx(model, path, sample_model_input)
+                #export_onnx(model, path, sample_model_input)
 
             if core_context.preempt.should_preempt():
                 return
