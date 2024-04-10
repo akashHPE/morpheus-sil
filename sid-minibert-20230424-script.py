@@ -182,7 +182,7 @@ def train_model(model_dir, train_dataloader, idx2label, core_context, sample_mod
                 torch.save(model.state_dict(), path / "checkpoint.pt")
                 with path.joinpath("state").open("w") as f:
                     f.write(f"{idx+1},{info.trial.trial_id}")
-               # export_onnx(model, path, sample_model_input)
+                export_onnx(model, path, sample_model_input)
 
             if core_context.preempt.should_preempt():
                 return
