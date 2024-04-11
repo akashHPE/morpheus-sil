@@ -3,7 +3,6 @@ description: Fine tune BERT mini for sensitive information detection
 entrypoint:  python sid-minibert-20230424-script.py --training-data /run/determined/workdir/data/sid-sample-training-data.csv --model-dir google/bert_uncased_L-4_H-256_A-4 --tokenizer-hash-filepath /run/determined/workdir/resources/bert-base-uncased-hash.txt --output-file /run/determined/workdir/sid-minibert-model.pt --epochs 50 --checkpoint-every-n-epochs 25
 max_restarts: 0
 resources:
-  slots_per_trial: 2
   resource_pool: A100
 searcher:
    name: single
