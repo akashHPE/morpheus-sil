@@ -89,8 +89,8 @@ def data_preprocessing(training_data):
     training_dataset, validation_dataset = random_split(dataset, (train_size, (dataset_size - train_size)))
 
     # create dataloaders
-    train_dataloader = DataLoader(dataset=training_dataset, shuffle=True, batch_size=8) #  batch_size original value was 32
-    val_dataloader = DataLoader(dataset=validation_dataset, shuffle=False, batch_size=16) # batch_size original value was 64
+    train_dataloader = DataLoader(dataset=training_dataset, shuffle=True, batch_size=4) #  batch_size original value was 32
+    val_dataloader = DataLoader(dataset=validation_dataset, shuffle=False, batch_size=8) # batch_size original value was 64
     return train_dataloader, val_dataloader, idx2label, sample_model_input
 
 
