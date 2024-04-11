@@ -179,7 +179,7 @@ def train_model(model_dir, train_dataloader, idx2label, core_context, sample_mod
             print("checkpointing now")
             with core_context.checkpoint.store_path(checkpoint_metadata_dict) as (path, storage_id):
                 #export_onnx(model, path, sample_model_input)
-                torch.save(model.state_dict(), path / "checkpoint.pt")
+                #torch.save(model.state_dict(), path / "checkpoint.pt")
                 with path.joinpath("state").open("w") as f:
                     f.write(f"{idx+1},{info.trial.trial_id}")
                 export_onnx(model.eval(), path, sample_model_input)
