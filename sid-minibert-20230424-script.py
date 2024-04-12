@@ -89,8 +89,8 @@ def data_preprocessing(training_data):
     training_dataset, validation_dataset = random_split(dataset, (train_size, (dataset_size - train_size)))
 
     # create dataloaders
-    train_dataloader = DataLoader(dataset=training_dataset, shuffle=True, batch_size=2) #  batch_size original value was 32
-    val_dataloader = DataLoader(dataset=validation_dataset, shuffle=False, batch_size=4) # batch_size original value was 64
+    train_dataloader = DataLoader(dataset=training_dataset, shuffle=True, batch_size=32) #  batch_size original value was 32
+    val_dataloader = DataLoader(dataset=validation_dataset, shuffle=False, batch_size=64) # batch_size original value was 64
     return train_dataloader, val_dataloader, idx2label, sample_model_input
 
 
@@ -178,11 +178,11 @@ def train_model(model_dir, train_dataloader, idx2label, core_context, sample_mod
         if (idx+1) % int(args.checkpoint_every_n_epochs) == 0:
             print("checkpointing now")
             with core_context.checkpoint.store_path(checkpoint_metadata_dict) as (path, storage_id):
-                #export_onnx(model, path, sample_model_input)
-                #torch.save(model.state_dict(), path / "checkpoint.pt")
+                torch.save(model.state_dict(), path / "checkpoint.pt")
+                torch.save(sample_model_input, path / "sample_model_input.pt")
                 with path.joinpath("state").open("w") as f:
                     f.write(f"{idx+1},{info.trial.trial_id}")
-                export_onnx(model.eval(), path, sample_model_input)
+                #export_onnx(model.eval(), path, sample_model_input)
                 torch.cuda.empty_cache()
             if core_context.preempt.should_preempt():
                 return
