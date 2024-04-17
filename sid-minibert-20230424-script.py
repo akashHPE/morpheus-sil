@@ -33,7 +33,7 @@ from torch.utils.data.dataset import random_split
 from torch.utils.dlpack import from_dlpack
 from tqdm import trange
 from transformers import AdamW
-from transformers import AutoModelForSequenceClassification
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 import cudf
 from cudf.core.subword_tokenizer import SubwordTokenizer
