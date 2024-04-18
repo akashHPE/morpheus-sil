@@ -181,7 +181,7 @@ def train_model(model_dir, train_dataloader, idx2label, core_context, sample_mod
             print("checkpointing now")
             with core_context.checkpoint.store_path(checkpoint_metadata_dict) as (path, storage_id):
                 model.save_pretrained(path)
-                tokenizer.save(path / tokenizer.json')
+                tokenizer.save(path / 'tokenizer.json')
                 #tokenizer.save_pretrained(path)
                 torch.save(sample_model_input, path / "sample_model_input.pt")
                 with path.joinpath("state").open("w") as f:
