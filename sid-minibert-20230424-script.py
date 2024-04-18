@@ -97,6 +97,8 @@ def data_preprocessing(training_data):
 def train_model(model_dir, train_dataloader, idx2label, core_context, sample_model_input):
     num_labels = len(idx2label)
     model = AutoModelForSequenceClassification.from_pretrained(model_dir, num_labels=num_labels)
+    model_id = "google/bert_uncased_L-4_H-256_A-4"
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
     model.train()
     model.cuda()
 
