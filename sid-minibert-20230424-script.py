@@ -186,7 +186,7 @@ def train_model(model_dir, train_dataloader, idx2label, core_context, sample_mod
                 with path.joinpath("state").open("w") as f:
                     f.write(f"{idx+1},{info.trial.trial_id}")
                 #export_onnx(model.eval(), path, sample_model_input)
-                torch.cuda.empty_cache()
+                #torch.cuda.empty_cache()
             if core_context.preempt.should_preempt():
                 return
 
