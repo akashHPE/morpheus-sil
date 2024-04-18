@@ -78,7 +78,8 @@ def data_preprocessing(training_data):
                                               add_special_tokens=True,
                                               return_tensors="pt")
 
-    sample_model_input = (tokenizer_output["input_ids"], tokenizer_output["attention_mask"])
+    sample_model_input = torch.Tensor(tokenizer_output["input_ids"], tokenizer_output["attention_mask"])
+    sample_model_input = sample_model_input.cuda()
 
     # create dataset
     dataset = TensorDataset(tokenizer_output["input_ids"], tokenizer_output["attention_mask"], labels)
