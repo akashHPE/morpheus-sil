@@ -262,9 +262,9 @@ def export_onnx(model, path, sample_model_input):
 
 def main(core_context):
     print("Data Preprocessing...")
-    train_dataloader, val_dataloader, idx2label, sample_model_input = data_preprocessing(args.training_data)
+    train_dataloader, val_dataloader, idx2label, sample_model_input, cased_tokenizer = data_preprocessing(args.training_data)
     print("Model Training...")
-    model, steps_completed = train_model(args.model_dir, train_dataloader, idx2label, core_context, sample_model_input)
+    model, steps_completed = train_model(args.model_dir, train_dataloader, idx2label, core_context, sample_model_input, cased_tokenizer)
     print("Model Evaluation...")
     model_eval(model, val_dataloader, idx2label, core_context, steps_completed)
 
