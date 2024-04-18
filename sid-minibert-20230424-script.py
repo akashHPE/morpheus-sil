@@ -91,17 +91,18 @@ def data_preprocessing(training_data):
     # create dataloaders
     train_dataloader = DataLoader(dataset=training_dataset, shuffle=True, batch_size=32) #  batch_size original value was 32
     val_dataloader = DataLoader(dataset=validation_dataset, shuffle=False, batch_size=64) # batch_size original value was 64
-    return train_dataloader, val_dataloader, idx2label, sample_model_input
+    return train_dataloader, val_dataloader, idx2label, sample_model_input, tokenizer_output
 
 
-def train_model(model_dir, train_dataloader, idx2label, core_context, sample_model_input):
+def train_model(model_dir, train_dataloader, idx2label, core_context, sample_model_input, tokenizer_output):
     num_labels = len(idx2label)
     model = AutoModelForSequenceClassification.from_pretrained(model_dir, num_labels=num_labels)
     model_id = "google/bert_uncased_L-4_H-256_A-4"
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    #tokenizer = AutoTokenizer.from_pretrained(model_id)
+    tokenizer = tokenizer_output
     model.train()
     model.cuda()
-
+    tokenizer.cuda()
     # use DataParallel if you have more than one GPU
     if torch.cuda.device_count() > 1:
         model = torch.nn.DataParallel(model)
