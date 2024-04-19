@@ -109,7 +109,7 @@ def train_model(model_dir, train_dataloader, idx2label, core_context, sample_mod
     tokenizer = cased_tokenizer
     model.train()
     model.cuda()
-    sample_model_input = sample_model_input.cuda()
+    #sample_model_input = sample_model_input.cuda()
     # use DataParallel if you have more than one GPU
     if torch.cuda.device_count() > 1:
         model = torch.nn.DataParallel(model)
