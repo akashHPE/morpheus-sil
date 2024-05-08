@@ -85,7 +85,7 @@ def data_preprocessing(training_data):
     dtype = torch.tensor(sample_model_input[0]).dtype
     
     # Create a tensor with the same shape and data type
-    #sample_model_input = torch.zeros(shape, dtype=dtype)
+    sample_model_input = torch.zeros(shape, dtype=dtype)
 
     # create dataset
     dataset = TensorDataset(tokenizer_output["input_ids"], tokenizer_output["attention_mask"], labels)
