@@ -33,13 +33,12 @@ from torch.utils.data.dataset import random_split
 from torch.utils.dlpack import from_dlpack
 from tqdm import trange
 from transformers import AdamW
-from transformers import AutoModelForSequenceClassification
+from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
 import cudf
 from cudf.core.subword_tokenizer import SubwordTokenizer
 
 import determined as det
-
 
 def data_preprocessing(training_data):
 
@@ -80,6 +79,13 @@ def data_preprocessing(training_data):
                                               return_tensors="pt")
 
     sample_model_input = (tokenizer_output["input_ids"], tokenizer_output["attention_mask"])
+       
+    # Extract shape and data type information
+    shape = torch.tensor(sample_model_input[0]).shape
+    dtype = torch.tensor(sample_model_input[0]).dtype
+    
+    # Create a tensor with the same shape and data type
+    sample_model_input = torch.zeros(shape, dtype=dtype)
 
     # create dataset
     dataset = TensorDataset(tokenizer_output["input_ids"], tokenizer_output["attention_mask"], labels)
@@ -90,17 +96,20 @@ def data_preprocessing(training_data):
     training_dataset, validation_dataset = random_split(dataset, (train_size, (dataset_size - train_size)))
 
     # create dataloaders
-    train_dataloader = DataLoader(dataset=training_dataset, shuffle=True, batch_size=32)
-    val_dataloader = DataLoader(dataset=validation_dataset, shuffle=False, batch_size=64)
-    return train_dataloader, val_dataloader, idx2label, sample_model_input
+    train_dataloader = DataLoader(dataset=training_dataset, shuffle=True, batch_size=32) #  batch_size original value was 32
+    val_dataloader = DataLoader(dataset=validation_dataset, shuffle=False, batch_size=64) # batch_size original value was 64
+    return train_dataloader, val_dataloader, idx2label, sample_model_input, cased_tokenizer
 
 
-def train_model(model_dir, train_dataloader, idx2label, core_context, sample_model_input):
+def train_model(model_dir, train_dataloader, idx2label, core_context, sample_model_input, cased_tokenizer):
     num_labels = len(idx2label)
     model = AutoModelForSequenceClassification.from_pretrained(model_dir, num_labels=num_labels)
+    model_id = "google/bert_uncased_L-4_H-256_A-4"
+    #tokenizer = AutoTokenizer.from_pretrained(model_id)
+    tokenizer = cased_tokenizer
     model.train()
     model.cuda()
-
+    #sample_model_input = sample_model_input.cuda()
     # use DataParallel if you have more than one GPU
     if torch.cuda.device_count() > 1:
         model = torch.nn.DataParallel(model)
@@ -179,11 +188,14 @@ def train_model(model_dir, train_dataloader, idx2label, core_context, sample_mod
         if (idx+1) % int(args.checkpoint_every_n_epochs) == 0:
             print("checkpointing now")
             with core_context.checkpoint.store_path(checkpoint_metadata_dict) as (path, storage_id):
-                torch.save(model.state_dict(), path / "checkpoint.pt")
+                model.save_pretrained(path)
+                #tokenizer.save(path / 'tokenizer.json')
+                #tokenizer.save_pretrained(path)
+                torch.save(sample_model_input, path / "sample_model_input.pt")
                 with path.joinpath("state").open("w") as f:
                     f.write(f"{idx+1},{info.trial.trial_id}")
-               # export_onnx(model, path, sample_model_input)
-
+                #export_onnx(model.eval(), path, sample_model_input)
+                #torch.cuda.empty_cache()
             if core_context.preempt.should_preempt():
                 return
 
@@ -258,9 +270,9 @@ def export_onnx(model, path, sample_model_input):
 
 def main(core_context):
     print("Data Preprocessing...")
-    train_dataloader, val_dataloader, idx2label, sample_model_input = data_preprocessing(args.training_data)
+    train_dataloader, val_dataloader, idx2label, sample_model_input, cased_tokenizer = data_preprocessing(args.training_data)
     print("Model Training...")
-    model, steps_completed = train_model(args.model_dir, train_dataloader, idx2label, core_context, sample_model_input)
+    model, steps_completed = train_model(args.model_dir, train_dataloader, idx2label, core_context, sample_model_input, cased_tokenizer)
     print("Model Evaluation...")
     model_eval(model, val_dataloader, idx2label, core_context, steps_completed)
 
