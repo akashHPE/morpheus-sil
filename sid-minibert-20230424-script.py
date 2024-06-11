@@ -79,10 +79,21 @@ def data_preprocessing(training_data):
                                               return_tensors="pt")
 
     sample_model_input = (tokenizer_output["input_ids"], tokenizer_output["attention_mask"])
+
+    # Get the tensors from tokenizer_output
+    input_ids = tokenizer_output["input_ids"]
+    attention_mask = tokenizer_output["attention_mask"]
+       
+    # Create zero-filled tensors with the same shape and dtype
+    input_ids_zeros = torch.zeros_like(input_ids)
+    attention_mask_zeros = torch.zeros_like(attention_mask)
+       
+    # Create a tuple of these zero-filled tensors
+    sample_model_input = (input_ids_zeros, attention_mask_zeros)
        
     # Extract shape and data type information
-    shape = torch.tensor(sample_model_input[0]).shape
-    dtype = torch.tensor(sample_model_input[0]).dtype
+    #shape = torch.tensor(sample_model_input[0]).shape
+    #dtype = torch.tensor(sample_model_input[0]).dtype
     
     # Create a tensor with the same shape and data type
     #sample_model_input = torch.zeros(shape, dtype=dtype)
